@@ -1,0 +1,7 @@
+
+
+运行
+
+python yolov5_demo.py -i cam -m weights/ir_model.xml   -d MYRIAD
+python yolov5_demo.py -i cam -m weights/ir_model_no196.xml   -d MYRIAD
+

@@ -1,0 +1,16 @@
+导出onnx
+python export.py --weights weights/poker_n.pt --img 640 --batch 1
+
+查看网络架构
+
+
+导出ir:
+mo --input_model weights/poker_n.onnx  --model_name weights/ir_model   -s 255 --reverse_input_channels --output Conv_294,Conv_245,Conv_196
+
+不要小目标：
+mo --input_model weights/poker_n.onnx  --model_name weights/ir_model_no196   -s 255 --reverse_input_channels --output Conv_294,Conv_245
+
+运行
+python yolov5_demo_OV2021.3.py -i cam -m weights/ir_model.xml -d MYRIAD
+
+python yolov5_demo_OV2021.3.py -i cam -m weights/ir_model_no196.xml   -d MYRIAD
