@@ -1,0 +1,66 @@
+labelimage制作数据集，制作 label_map.pbtxt
+
+安装：https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf1.md
+环境：Python 3.6 TensorFlow 1.15 Protobuf Compiler >= 3.0
+
+TensorFlow检查GPU：tf.test.is_gpu_available()
+
+上传models（git clone可能会版本不一样）
+安装：
+cd models/research
+# Compile protos.
+protoc object_detection/protos/*.proto --python_out=.
+# Install TensorFlow Object Detection API.
+cp object_detection/packages/tf1/setup.py .
+python -m pip install --use-feature=2020-resolver .
+
+测试：
+python object_detection/builders/model_builder_tf1_test.py
+
+将数据集上传服务器 : 
+conda安装tar
+打包：tar -czvf pascal_voc_images.tar.gz ./data/*
+解压：tar -xvf pascal_voc_images.tar.gz 
+
+
+转移到训练目录
+生成tfrecord文件
+
+python generate_tfrecord.py -x data/images/train -l data/annotations/label_map.pbtxt -o data/annotations/train.record
+
+python generate_tfrecord.py -x data/images/test -l data/annotations/label_map.pbtxt -o data/annotations/test.record
+
+
+修改配置文件：
+ssdlite_mobilenet_v2_coco.config
+类别数
+batch_size
+训练文件位置、标注位置
+
+
+训练：
+python ./model_main.py --pipeline_config_path=./data/ssdlite_mobilenet_v2_coco.config  --model_dir=./my_model_dir    --num_train_steps=100000 --sample_1_of_n_eval_examples=1    --alsologtostderr
+
+可能报错：AttributeError: module 'cv2' has no attribute '_registerMatType'
+降低opencv: 
+pip uninstall opencv-python
+pip install opencv-python==3.4.5.20
+
+tensorboard可视化
+
+
+导出推理模型：
+python ./export_inference_graph.py --input_type=image_tensor --pipeline_config_path=./data/ssdlite_mobilenet_v2_coco.config --trained_checkpoint_prefix=./my_model_dir/model.ckpt-100000  --output_directory=./inference_model
+
+
+
+YOLO：
+
+pascal voc 格式转为yolo格式标注
+在用labelimage检验是否正确
+
+
+
+python ./train.py --data ./data/coco_poker.yaml --cfg ./models/yolov5m_poker.yaml --weights ./weights/yolov5m.pt --batch-size 24 --epochs 100 --workers 4 --name m_300 --project poker_test
+
+python ./train.py --data ./data/coco_poker.yaml --cfg ./models/yolov5n_poker.yaml --weights ./weights/yolov5n.pt --batch-size 24 --epochs 100 --workers 4 --name n_100 --project poker_test
